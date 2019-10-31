@@ -4,16 +4,38 @@ import argparse
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--inputVO', type=str, default='../data/object-verb.csv', help='input verb-object file')
-parser.add_argument('--inputOA', type=str, default='../data/object-embedding.csv', help='input object-embedding file')
-parser.add_argument('--output', type=str, default='../data/corpus.csv', help='output file')
+parser.add_argument('--inputVO', type=str, default='../data/object-verb.csv',
+                    help='input verb-object file')
+parser.add_argument('--inputOA', type=str,
+                    default='../data/object-embedding.csv',
+                    help='input object-embedding file')
+parser.add_argument('--output', type=str, default='../data/corpus.csv',
+                    help='output file')
 opt = parser.parse_args()
 
 data_size = 10000
 language = ["give", "hand", "get", "me", "the", "pass", "over", "up", "down", "pick", "fetch", "bring", "a", "find", "please", "you", "help", "need", "i", "want", "to", "will", "might", "maybe", "may", "have", "hey", "take", "and", "us", "we", "use", "for", "an", "few", "some"]
 
 
-def genLanguage(verb, obj):
+def gen_from_grammar(verb, obj):
+    """Generates a string from a grammar."""
+    pass
+
+def gen_from_template(verb, obj):
+    """Generates a string from templates."""
+    pre = ["Give me the ", "Hand me the ", "Pass me the ", "Fetch the ",
+           "Get the ", "Bring the ", "Bring me the "
+           "I need the ", "I want the ",
+           "I need a ", "I want a ", "An item that can ", "An object that can ",
+           "Give me something that can ", "Give me an item that can ",
+           "Hand me something with which I can ",
+           "Give me something with which I can ",
+           "Hand me something to ", "Give me something to ",
+           "I want something to ", "I need something to ",]
+    pass
+
+def gen_random_language(verb, obj):
+    """Generates a string of random words around the <verb, object> pair."""
     len = random.randrange(5, 21)
     pos_v = random.randrange(0, len)
     pos_o = pos_v
@@ -60,7 +82,7 @@ with open(opt.inputVO, 'r') as inputVOFile:
             for i in range(data_size):
                 v = random.choice(verbs)
                 o = random.choice(vo_dict[v])
-                sentence = genLanguage(v, o)
+                sentence = gen_random_language(v, o)
                 aff = random.choice(aff_dict[o])
                 row = (v, o, sentence, aff)
                 csvwriter.writerow(row)
