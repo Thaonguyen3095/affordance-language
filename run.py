@@ -22,13 +22,15 @@ parser.add_argument('--learning_rate', type=float, default=00001, help='')
 parser.add_argument('--dropout', type=float, default=0.0, help='')
 parser.add_argument('--ret_num', type=int, default=5, help='')
 parser.add_argument('--train_proportion', type=float, default=0.8, help='')
-
+parser.add_argument('--k_fold', type=bool, default=False, help='')
+parser.add_argument('--k', type=int, default=5, help='')
 
 opt = parser.parse_args()
 os.makedirs('models', exist_ok=True)
 os.makedirs('images', exist_ok=True)
 os.makedirs('images/cross_val', exist_ok=True)
 
+"""
 num_layers = 1
 rnn_input = 128
 hidden_dim = 64
@@ -40,9 +42,11 @@ ret_num = 5 #number of objects for retrieval task
 
 #train/test split without cross validation
 train_proportion = 0.8
+
 #Cross validation
 k_fold = False #True
 k = 5
+"""
 
 #different data sizes
 data_size = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
