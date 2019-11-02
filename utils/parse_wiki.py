@@ -37,6 +37,7 @@ with open(data_file, encoding='latin-1') as data:
                             if obj not in vo_pair[verb]:
                                 vo_pair[verb].append(obj)
 
+                # write frequency counts as well
                 for obj, verbs in ov_pair.items():
                     csvwriter_obj.writerow((obj,len(verbs),verbs))
                     for v in verbs:

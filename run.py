@@ -10,7 +10,20 @@ import rnn
 import utils.helpers as utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', type=str, default='./data/corpus-short.csv', help='input data')
+parser.add_argument('--input', type=str, default='./data/corpus-short.csv',
+                    help='input data')
+parser.add_argument('--num_layers', type=int, default=1,
+                    help='number of layers of model')
+parser.add_argument('--rnn_input', type=int, default=128, help='')
+parser.add_argument('--hidden_dim', type=int, default=64, help='')
+parser.add_argument('--rnn_output', type=int, default=2048, help='')
+parser.add_argument('--num_epochs', type=int, default=50, help='')
+parser.add_argument('--learning_rate', type=float, default=00001, help='')
+parser.add_argument('--dropout', type=float, default=0.0, help='')
+parser.add_argument('--ret_num', type=int, default=5, help='')
+parser.add_argument('--train_proportion', type=float, default=0.8, help='')
+
+
 opt = parser.parse_args()
 os.makedirs('models', exist_ok=True)
 os.makedirs('images', exist_ok=True)
@@ -85,7 +98,7 @@ def genRet(verb, test_set, objs):
                 elif i == (len(objs) - 1):
                     objs.append([sample[1], sample[3]]) #object name and affordance vector
                     break
-            if len(objs) >= ret_num:
+            if len(objs) >= opt.ret_num:
                 return objs
 
 
@@ -146,7 +159,7 @@ def genTest(verb, test_set, objs):
                 elif i == (len(objs) - 1):
                     objs.append([sample[1], sample[3]])
                     break
-            if len(objs) >= ret_num:
+            if len(objs) >= opt.ret_num:
                 return objs
 
 
@@ -199,10 +212,10 @@ def test(model, test_set, word2id, test_acc1, test_acc2):
 def init_model(word2id):
     # initialize the model
     model = nn.Sequential(
-    nn.Embedding(len(word2id), rnn_input),
-    rnn.RNNModel(rnn_input,rnn_output,hidden_dim,num_layers,dropout,device)
-    ).to(device)
-    optimizer = optim.Adam(model.parameters(), lr = learning_rate)
+    nn.Embedding(len(word2id), opt.rnn_input),
+    rnn.RNNModel(opt.rnn_input, opt.rnn_output, opt.hidden_dim, opt.num_layers,
+                 opt.dropout, device)).to(device)
+    optimizer = optim.Adam(model.parameters(), lr = opt.learning_rate)
     return model, optimizer
 
 
@@ -231,7 +244,7 @@ def main():
             for l in test_data:
                 train_data.append(utils.crossval_helper(l, test_data))
         else: #normal train-test split
-            split = int(len(data)*train_proportion)
+            split = int(len(data)*opt.train_proportion)
             train_data = data[:split]
             test_data = data[split:]
 
@@ -246,7 +259,7 @@ def main():
                 eval(model, test_data[i], eval_loss)
                 ret(model, test_data[i], id2word, ret_acc1, ret_acc2)
                 test(model, test_data[i], word2id, test_acc1, test_acc2)
-                for epoch in range(num_epochs):
+                for epoch in range(opt.num_epochs):
                     print()
                     print("EPOCH", epoch + 1)
                     random.shuffle(train_data[i])
@@ -255,7 +268,8 @@ def main():
                     ret(model, test_data[i], id2word, ret_acc1, ret_acc2)
                     test(model, test_data[i], word2id, test_acc1, test_acc2)
                     if SAVE_MODEL:
-                        torch.save(model.state_dict(), './models/nlmodel_datasize'+str(dt_size)+'_fold'+str(i+1)+'_epoch'+str(epoch+1)+'.pt')
+                        torch.save(model.state_dict(),
+                                   './models/nlmodel_datasize'+str(dt_size)+'_fold'+str(i+1)+'_epoch'+str(epoch+1)+'.pt')
                 if PLOT_FIG:
                     plt_train.append((i+1, train_loss))
                     plt_eval.append((i+1, eval_loss))
@@ -265,7 +279,7 @@ def main():
                     plt_test2.append((i+1, test_acc2))
             #plot losses & accuracies
             if PLOT_FIG:
-                utils.plot(plt_train, 'Train Loss', 'Fold number', './images/cross_val/train_loss_datasize'+str(dt_size)+'.png')
+                utils.plot(plt_train,'Train Loss', 'Fold number','./images/cross_val/train_loss_datasize'+str(dt_size)+'.png')
                 utils.plot(plt_eval, 'Eval Loss', 'Fold number', './images/cross_val/eval_loss_datasize'+str(dt_size)+'.png')
                 utils.plot(plt_ret1, 'Top1 Retrieval Accuracy', 'Fold number', './images/cross_val/ret_acc1_datasize'+str(dt_size)+'.png')
                 utils.plot(plt_ret2, 'Top2 Retrieval Accuracy', 'Fold number', './images/cross_val/ret_acc2_datasize'+str(dt_size)+'.png')
@@ -277,7 +291,7 @@ def main():
             eval(model, test_data, eval_loss)
             ret(model, test_data, id2word, ret_acc1, ret_acc2)
             test(model, test_data, word2id, test_acc1, test_acc2)
-            for epoch in range(num_epochs):
+            for epoch in range(opt.num_epochs):
                 print()
                 print('EPOCH', epoch + 1)
                 random.shuffle(train_data)
