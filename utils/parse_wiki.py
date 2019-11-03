@@ -74,7 +74,7 @@ def filter_object_verbs(object_verb_file, verb_object_file):
                 idf_dict[verb] += 1
 
     for obj in filtered_object_verb:
-        tf_idf_score = {obj: {}}
+        tf_idf_score[obj] = {}
         for verb in filtered_object_verb[obj]:
             tf_idf_score[obj][verb] = math.log10(
                 tf_dict[verb][obj] / float(idf_dict[verb]))
@@ -83,6 +83,19 @@ def filter_object_verbs(object_verb_file, verb_object_file):
         f.write(json.dumps(verb_object))
     with open("../data/filtered-object-verb.json", "w+") as f:
         f.write(json.dumps(object_verb))
+
+    with open("../data/tf-idf.json", "w+") as f:
+        f.write(json.dumps(tf_idf_score))
+
+    with open("../data/filtered-object-verb.tsv", "w+") as f:
+        f.write("object\tverb\tfreq\ttf-idf\n")
+        for obj in filtered_object_verb:
+            for verb in filtered_object_verb[obj]:
+                f.write(obj + '\t' + verb + '\t'
+                        + str(filtered_object_verb[obj][verb]) + '\t'
+                        + str(tf_idf_score[obj][verb]) + '\n')
+
+
 
 def parse_wiki_old():
     data_file = "wiki.txt"
