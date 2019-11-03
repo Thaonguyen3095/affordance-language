@@ -1,7 +1,7 @@
-import spacy
+import json
+import math
 import csv
 import nltk
-import json
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -33,33 +33,56 @@ def create_object_verb_dict(data_file):
 
                     verb_object[verb][obj] += 1
 
-    with open("verb-object.json", "w+") as f:
+    with open("../data/verb-object.json", "w+") as f:
         f.write(json.dumps(verb_object))
-    with open("object-verb.json", "w+") as f:
+    with open("../data/object-verb.json", "w+") as f:
         f.write(json.dumps(object_verb))
 
 def filter_object_verbs(object_verb_file, verb_object_file):
     with open(object_verb_file, encoding='latin-1') as data:
-        for line in f:
+        for line in data:
             object_verb = json.loads(line)
 
     with open(verb_object_file, encoding='latin-1') as data:
-        for line in f:
+        for line in data:
             verb_object = json.loads(line)
 
-    threshold = 5 # change to higher after looking through
+    threshold = 1 # change to higher after looking through
 
     # filter based on frequency
-    filtered_object_verb = {}
+    filtered_object_verb, verbs = {}, []
     for obj in object_verb:
         for verb in object_verb[obj]:
-            if object_verb[obj][verb] > threshold:
+            if object_verb[obj][verb] >= threshold:
                 if obj not in filtered_object_verb:
                     filtered_object_verb[obj] = {}
                 filtered_object_verb[obj][verb] = object_verb[obj][verb]
+                verbs.append(verb)
 
-    # filter based on tf-idf
+    # filter based on tf-idf i.e., calculate scores for verbs for each object
+    tf_dict = {verb: {} for verb in verbs}
+    idf_dict = {verb: 0 for verb in verbs}
+    tf_idf_score = {}
+    verbs = list(set(verbs))
 
+    for verb in verbs:
+        for obj in filtered_object_verb:
+            if verb not in filtered_object_verb[obj]:
+                tf_dict[verb][obj] = 0
+            else:
+                tf_dict[verb][obj] = filtered_object_verb[obj][verb]
+                idf_dict[verb] += 1
+
+    for obj in filtered_object_verb:
+        tf_idf_score = {obj: {}}
+        for verb in filtered_object_verb[obj]:
+            tf_idf_score[obj][verb] = math.log10(
+                tf_dict[verb][obj] / float(idf_dict[verb]))
+
+    with open("../data/filtered-verb-object.json", "w+") as f:
+        f.write(json.dumps(verb_object))
+    with open("../data/filtered-object-verb.json", "w+") as f:
+        f.write(json.dumps(object_verb))
 
 def parse_wiki_old():
     data_file = "wiki.txt"
@@ -106,4 +129,6 @@ def parse_wiki_old():
 
 if __name__ == '__main__':
     # parse_wiki_old()
-    create_object_verb_data()
+    create_object_verb_dict("../data/wiki_small_10k.txt")
+    filter_object_verbs("../data/object-verb.json",
+                        "../data/verb-object.json")
