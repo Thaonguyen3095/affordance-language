@@ -1,6 +1,6 @@
-file_name = "map_clsloc.txt"
+file_name = "../data/map_clsloc.txt"
 data_file = "/data/nlp/wikipedia-text-dump/text/final.txt"
-out_file = "wiki.txt"
+out_file = "../data/wiki.txt"
 
 objects = []
 with open(file_name, encoding='latin-1') as f:

@@ -1,4 +1,5 @@
 import csv
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -27,6 +28,19 @@ def crossval_helper(l, total_list):
         if t is not l:
             lt += t
     return lt
+
+
+def gen_examples(train_data):
+    train_pos = [(row[0], row[1], row[2], row[3], 1.0) for row in train_data]
+    train_neg = []
+    for row in train_pos:
+        while True:
+            neg_sample = random.choice(train_pos)
+            if (not neg_sample[0] == row[0]) and (not neg_sample[1] == row[1]):
+                train_neg += [(row[0], row[1], row[2], neg_sample[3], -1.0)]
+                break
+    data = train_pos + train_neg
+    return data
 
 
 def plot(losses, y_label, legend_label, file_name):

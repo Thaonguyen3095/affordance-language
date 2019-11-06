@@ -53,7 +53,7 @@ def filter_object_verbs(object_verb_file, verb_object_file):
     filtered_object_verb, verbs = {}, []
     for obj in object_verb:
         for verb in object_verb[obj]:
-            if object_verb[obj][verb] >= threshold:
+            if object_verb[obj][verb] > threshold:
                 if obj not in filtered_object_verb:
                     filtered_object_verb[obj] = {}
                 filtered_object_verb[obj][verb] = object_verb[obj][verb]
@@ -142,6 +142,6 @@ def parse_wiki_old():
 
 if __name__ == '__main__':
     # parse_wiki_old()
-    create_object_verb_dict("../data/wiki_small_10k.txt")
+    create_object_verb_dict("../data/wiki.txt")
     filter_object_verbs("../data/object-verb.json",
                         "../data/verb-object.json")
