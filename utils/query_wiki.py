@@ -15,5 +15,6 @@ with open(data_file, encoding='latin-1') as data:
     with open(out_file, "w", encoding='latin-1') as out:
         for line in data:
             for obj in objects:
-                if obj in line:
+                # romapatel: tokenize by splitting around whitespaces and then check for obj                
+                if obj in line.split(" "):
                     out.write(obj[1:len(obj)-1]+"\t"+line) #write to file
