@@ -2,6 +2,7 @@ import csv
 import random
 import argparse
 import numpy as np
+from nltk import CFG
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--inputVO', type=str, default='../data/object-verb.csv',
@@ -16,23 +17,47 @@ opt = parser.parse_args()
 data_size = 10000
 language = ["give", "hand", "get", "me", "the", "pass", "over", "up", "down", "pick", "fetch", "bring", "a", "find", "please", "you", "help", "need", "i", "want", "to", "will", "might", "maybe", "may", "have", "hey", "take", "and", "us", "we", "use", "for", "an", "few", "some"]
 
-
+# TODO(roma): should just use the template / random function for now
 def gen_from_grammar(verb, obj):
     """Generates a string from a grammar."""
-    pass
+    print("Generating strings from context free grammar")
+    grammar = CFG.fromstring("""S -> NP VP
+    PP -> P NP
+    NP -> Det N | NP PP
+    VP -> V NP | VP PP
+    Det -> 'a' | 'the'
+    N -> 'wall' | 'kitchen'
+    V -> 'walk' | 'turn' | 'crawl' | 'go'
+    P -> 'on' | 'in'
+    """)
+
+    print("Grammar:\t", grammar)
+    print("Grammar productions:\t")
+
+    sentences = []
+    for production in grammar.productions():
+      sentences.append(production)
 
 def gen_from_template(verb, obj):
     """Generates a string from templates."""
-    pre = ["Give me the ", "Hand me the ", "Pass me the ", "Fetch the ",
+    print("Generating strings from templates.")
+
+    pre_obj = ["Give me the ", "Hand me the ", "Pass me the ", "Fetch the ",
            "Get the ", "Bring the ", "Bring me the "
            "I need the ", "I want the ",
-           "I need a ", "I want a ", "An item that can ", "An object that can ",
+           "I need a ", "I want a ",]
+
+    pre_verb = ["An item that can ", "An object that can ",
            "Give me something that can ", "Give me an item that can ",
            "Hand me something with which I can ",
            "Give me something with which I can ",
            "Hand me something to ", "Give me something to ",
            "I want something to ", "I need something to ",]
-    pass
+
+    sentences = [template + verb for template in pre]
+
+    # returns a list of sentences, can change as needed
+    return sentences
 
 def gen_random_language(verb, obj):
     """Generates a string of random words around the <verb, object> pair."""
