@@ -16,4 +16,4 @@ with open(data_file, encoding='latin-1') as data:
         for line in data:
             for obj in objects:
                 if obj in line:
-                    out.write(obj[1:len(obj)-1]+"\t"+line) #write to file
+                    out.write(obj[1:-1]+"\t"+line) #write to file
