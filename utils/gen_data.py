@@ -7,7 +7,7 @@ import numpy as np
 parser = argparse.ArgumentParser()
 parser.add_argument('--inputVO', type=str, default='../data/filtered-object-verb.tsv', help='input verb-object file')
 parser.add_argument('--inputOA', type=str, default='../data/object-embedding.csv', help='input object-embedding file')
-parser.add_argument('--output', type=str, default='../data/corpus_template_verb_only.csv', help='output file')
+parser.add_argument('--output', type=str, default='../data/corpus_random_verb_only.csv', help='output file')
 opt = parser.parse_args()
 
 data_size = 10000
@@ -96,7 +96,7 @@ with open(opt.inputVO, 'r') as inputVOFile:
 
             aff_dict = {}
             for row in oaData:
-                obj = str(row[0])
+                obj = str(row[0]).lower()
                 aff = str(row[1])
                 if obj not in aff_dict:
                     aff_dict[obj] = []
