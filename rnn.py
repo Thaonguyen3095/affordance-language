@@ -2,14 +2,16 @@ import torch
 import torch.nn as nn
 
 class RNNModel(nn.Module):
-    def __init__(self, input_size, output_size, hidden_dim, n_layers, drop_out, device):
+    def __init__(self, input_size, output_size, hidden_dim, n_layers,
+                 drop_out, device):
         super(RNNModel, self).__init__()
         # Defining some parameters
         self.device = device
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         # Defining the layers
-        self.rnn = nn.RNN(input_size, hidden_dim, n_layers, batch_first=True, dropout = drop_out)   
+        self.rnn = nn.RNN(input_size, hidden_dim, n_layers,
+                          batch_first=True, dropout = drop_out)
         self.fc = nn.Linear(hidden_dim, output_size)
     
     def forward(self, x):
@@ -25,5 +27,6 @@ class RNNModel(nn.Module):
     
     def init_hidden(self, batch_size):
         # This method generates the first hidden state of zeros which we'll use in the forward pass
-        hidden = torch.zeros(self.n_layers, batch_size, self.hidden_dim).to(self.device)
+        hidden = torch.zeros(self.n_layers, batch_size,
+                             self.hidden_dim).to(self.device)
         return hidden

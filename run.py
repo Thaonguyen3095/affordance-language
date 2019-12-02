@@ -48,7 +48,8 @@ def train(model, train_set, optimizer, plot_loss):
     sum_loss = 0.0
     for verb, obj, sentence, affordances, val in train_set:
         optimizer.zero_grad()
-        affordances = torch.from_numpy(affordances).to(device).float().unsqueeze(0)
+        affordances = torch.from_numpy(
+            affordances).to(device).float().unsqueeze(0)
         sentence = Tensor(sentence).unsqueeze(0)
         output = model(sentence)
         loss = F.cosine_embedding_loss(output, affordances, FTensor([val]))
@@ -64,10 +65,12 @@ def eval(model, test_set, plot_loss, plot_acc):
     with torch.no_grad():
         sum_loss, correct = 0.0, 0.0
         for verb, obj, sentence, affordances, val in test_set:
-            affordances = torch.from_numpy(affordances).to(device).float().unsqueeze(0)
+            affordances = torch.from_numpy(
+                affordances).to(device).float().unsqueeze(0)
             sentence = Tensor(sentence).unsqueeze(0)
             output = model(sentence)
-            sum_loss += abs(F.cosine_embedding_loss(output, affordances, FTensor([val])).item())
+            sum_loss += abs(F.cosine_embedding_loss(output, affordances,
+                                                    FTensor([val])).item())
             sim = F.cosine_similarity(output, affordances)
             if (sim >= 0 and val >= 0) or (sim < 0 and val < 0):
                 correct += 1.0
@@ -106,7 +109,8 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
             sims = []
             output = model(sentence)
             for obj_name, obj in ret_objs:
-                affordances = torch.from_numpy(obj).to(device).float().unsqueeze(0)
+                affordances = torch.from_numpy(
+                    obj).to(device).float().unsqueeze(0)
                 sim = F.cosine_similarity(output, affordances)
                 sims.append(sim.item())
             sort = sorted(sims, reverse=True)
@@ -133,7 +137,8 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
                 print(output)
                 print(l)
                 print(t1,',', t2)
-        print('RET_ACC Top1: {} Top2: {}'.format(correct/len(test_set), correct2/len(test_set)))
+        print('RET_ACC Top1: {} Top2: {}'.format(
+            correct/len(test_set), correct2/len(test_set)))
         ret_acc1.append(correct/len(test_set))
         ret_acc2.append(correct2/len(test_set))
 
