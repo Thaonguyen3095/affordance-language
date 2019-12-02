@@ -172,7 +172,8 @@ def test(model, test_set, word2id, test_acc1, test_acc2):
             sims = []
             output = model(sentence)
             for obj_name, obj in ret_objs:
-                affordances = torch.from_numpy(obj).to(device).float().unsqueeze(0)
+                affordances = torch.from_numpy(
+                    obj).to(device).float().unsqueeze(0)
                 sim = F.cosine_similarity(output, affordances)
                 sims.append(sim.item())
             sort = sorted(sims, reverse=True)
@@ -199,7 +200,8 @@ def test(model, test_set, word2id, test_acc1, test_acc2):
                 print(output)
                 print(l)
                 print(t1,',', t2)
-        print('TEST_ACC Top1: {} Top2: {}'.format(correct/len(test_set), correct2/len(test_set)))
+        print('TEST_ACC Top1: {} Top2: {}'.format(correct/len(test_set),
+                                                  correct2/len(test_set)))
         test_acc1.append(correct/len(test_set))
         test_acc2.append(correct2/len(test_set))
 
@@ -218,7 +220,8 @@ def main():
     # read input data and split data for training and testing
     dt, word2id, id2word = utils.read_data(opt.input)
     if opt.PLOT_FIG:
-        plot_train, plot_eval, plot_acc, plot_ret1, plot_ret2, plot_test1, plot_test2 = [], [], [], [], [], [], []
+        plot_train, plot_eval, plot_acc, plot_ret1, plot_ret2, \
+        plot_test1, plot_test2 = [], [], [], [], [], [], []
     for dt_size in data_size:
         data = dt[:dt_size]
         print()
@@ -245,12 +248,14 @@ def main():
 
         # train and evaluate model
         if opt.k_fold:
-            plt_train, plt_eval, plt_acc, plt_ret1, plt_ret2, plt_test1, plt_test2 = [], [], [], [], [], [], []
+            plt_train, plt_eval, plt_acc, plt_ret1, plt_ret2, plt_test1, \
+            plt_test2 = [], [], [], [], [], [], []
             for i in range(opt.k):
                 print("------------------------------------------------------------------------------------")
                 print("FOLD", i+1)
                 model, optimizer = init_model(word2id)
-                train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, test_acc1, test_acc2 = [], [], [], [], [], [], []
+                train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, \
+                test_acc1, test_acc2 = [], [], [], [], [], [], []
                 data = utils.gen_examples(train_data[i])
                 t_data = utils.gen_examples(test_data[i])
                 eval(model, t_data, eval_loss, eval_acc)
@@ -266,7 +271,8 @@ def main():
                     test(model, t_data, word2id, test_acc1, test_acc2)
                     if opt.SAVE_MODEL:
                         torch.save(model.state_dict(),
-                                   './models/nlmodel_datasize'+str(dt_size)+'_fold'+str(i+1)+'_epoch'+str(epoch+1)+'.pt')
+                                   './models/nlmodel_datasize'+str(dt_size)+\
+                                   '_fold'+str(i+1)+'_epoch'+str(epoch+1)+'.pt')
                 if opt.PLOT_FIG:
                     plt_train.append((i+1, train_loss))
                     plt_eval.append((i+1, eval_loss))
@@ -277,16 +283,31 @@ def main():
                     plt_test2.append((i+1, test_acc2))
             #plot losses & accuracies
             if opt.PLOT_FIG:
-                utils.plot(plt_train,'Train Loss', 'Fold number','./images/cross_val/train_loss_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_eval, 'Eval Loss', 'Fold number', './images/cross_val/eval_loss_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_acc, 'Eval Accuracy', 'Fold number', './images/cross_val/eval_acc_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_ret1, 'Top1 Retrieval Accuracy', 'Fold number', './images/cross_val/ret_acc1_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_ret2, 'Top2 Retrieval Accuracy', 'Fold number', './images/cross_val/ret_acc2_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_test1, 'Top1 Test Accuracy', 'Fold number', './images/cross_val/test_acc1_datasize'+str(dt_size)+'.png')
-                utils.plot(plt_test2, 'Top2 Test Accuracy', 'Fold number', './images/cross_val/test_acc2_datasize'+str(dt_size)+'.png')
+                utils.plot(plt_train,'Train Loss', 'Fold number',
+                           './images/cross_val/train_loss_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_eval, 'Eval Loss', 'Fold number',
+                           './images/cross_val/eval_loss_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_acc, 'Eval Accuracy', 'Fold number',
+                           './images/cross_val/eval_acc_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_ret1, 'Top1 Retrieval Accuracy', 'Fold number',
+                           './images/cross_val/ret_acc1_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_ret2, 'Top2 Retrieval Accuracy', 'Fold number',
+                           './images/cross_val/ret_acc2_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_test1, 'Top1 Test Accuracy', 'Fold number',
+                           './images/cross_val/test_acc1_datasize'+ \
+                           str(dt_size)+'.png')
+                utils.plot(plt_test2, 'Top2 Test Accuracy', 'Fold number',
+                           './images/cross_val/test_acc2_datasize'+ \
+                           str(dt_size)+'.png')
         else:
             model, optimizer = init_model(word2id)
-            train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, test_acc1, test_acc2 = [], [], [], [], [], [], []
+            train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, test_acc1, \
+            test_acc2 = [], [], [], [], [], [], []
             data = utils.gen_examples(train_data)
             t_data = utils.gen_examples(test_data)
             eval(model, t_data, eval_loss, eval_acc)
@@ -301,7 +322,9 @@ def main():
                 ret(model, t_data, id2word, ret_acc1, ret_acc2)
                 test(model, t_data, word2id, test_acc1, test_acc2)
                 if opt.SAVE_MODEL:
-                    torch.save(model.state_dict(), './models/nlmodel_datasize'+str(dt_size)+'_epoch'+str(epoch+1)+'.pt')
+                    torch.save(model.state_dict(),
+                               './models/nlmodel_datasize'+str(dt_size)+ \
+                               '_epoch'+str(epoch+1)+'.pt')
             if opt.PLOT_FIG:
                 plot_train.append((dt_size, train_loss))
                 plot_eval.append((dt_size, eval_loss))
@@ -312,13 +335,20 @@ def main():
                 plot_test2.append((dt_size, test_acc2))
     #plot losses & accuracies
     if not opt.k_fold and opt.PLOT_FIG:
-        utils.plot(plot_train, 'Train Loss', 'Data size', './images/train_loss.png')
-        utils.plot(plot_eval, 'Eval Loss', 'Data size', './images/eval_loss.png')
-        utils.plot(plot_acc, 'Eval Accuracy', 'Data size', './images/eval_acc.png')
-        utils.plot(plot_ret1, 'Top1 Retrieval Accuracy', 'Data size', './images/ret_acc1.png')
-        utils.plot(plot_ret2, 'Top2 Retrieval Accuracy', 'Data size', './images/ret_acc2.png')
-        utils.plot(plot_test1, 'Top1 Test Accuracy', 'Data size', './images/test_acc1.png')
-        utils.plot(plot_test2, 'Top2 Test Accuracy', 'Data size', './images/test_acc2.png')
+        utils.plot(plot_train, 'Train Loss', 'Data size',
+                   './images/train_loss.png')
+        utils.plot(plot_eval, 'Eval Loss', 'Data size',
+                   './images/eval_loss.png')
+        utils.plot(plot_acc, 'Eval Accuracy', 'Data size',
+                   './images/eval_acc.png')
+        utils.plot(plot_ret1, 'Top1 Retrieval Accuracy', 'Data size',
+                   './images/ret_acc1.png')
+        utils.plot(plot_ret2, 'Top2 Retrieval Accuracy', 'Data size',
+                   './images/ret_acc2.png')
+        utils.plot(plot_test1, 'Top1 Test Accuracy', 'Data size',
+                   './images/test_acc1.png')
+        utils.plot(plot_test2, 'Top2 Test Accuracy', 'Data size',
+                   './images/test_acc2.png')
 
 if __name__ == '__main__':
     main()
