@@ -10,8 +10,10 @@ import rnn
 import utils.helpers as utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', type=str, default='data/corpus-short.csv',
-                    help='input data')
+parser.add_argument('--input_train', type=str, default='data/corpus-train.csv',
+                    help='train data')
+parser.add_argument('--input_test', type=str, default='data/corpus-test.csv',
+                    help='test data')
 parser.add_argument('--num_layers', type=int, default=1,
                     help='number of layers of model')
 parser.add_argument('--rnn_input', type=int, default=128, help='')
@@ -34,9 +36,6 @@ os.makedirs('models', exist_ok=True)
 os.makedirs('images', exist_ok=True)
 os.makedirs('images/cross_val', exist_ok=True)
 
-#different data sizes
-data_size = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.LongTensor if cuda else torch.LongTensor
@@ -46,7 +45,7 @@ FTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 def train(model, train_set, optimizer, plot_loss):
     model.train()
     sum_loss = 0.0
-    for verb, obj, sentence, affordances, val in train_set:
+    for verb, obj, sentence, affordances, img, val in train_set:
         optimizer.zero_grad()
         affordances = torch.from_numpy(
             affordances).to(device).float().unsqueeze(0)
@@ -64,7 +63,7 @@ def eval(model, test_set, plot_loss, plot_acc):
     model.eval()
     with torch.no_grad():
         sum_loss, correct = 0.0, 0.0
-        for verb, obj, sentence, affordances, val in test_set:
+        for verb, obj, sentence, affordances, img, val in test_set:
             affordances = torch.from_numpy(
                 affordances).to(device).float().unsqueeze(0)
             sentence = Tensor(sentence).unsqueeze(0)
@@ -90,7 +89,8 @@ def genRet(verb, test_set, objs):
                 if sample[1] is obj[0]:
                     break
                 elif i == (len(objs) - 1):
-                    objs.append([sample[1], sample[3]]) #object name and affordance vector
+                    #object name, affordance vector, image file
+                    objs.append([sample[1], sample[3], sample[4]])
                     break
             if len(objs) >= opt.ret_num:
                 return objs
@@ -100,12 +100,12 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
     model.eval()
     correct, correct2 = 0.0, 0.0
     with torch.no_grad():
-        for verb, ob, sentence, affordances, val in test_set:
+        for verb, ob, sentence, affordances, img, val in test_set:
             s = ''
             for i in sentence:
                 s += id2word[i] + ' '
             sentence = Tensor(sentence).unsqueeze(0)
-            ret_objs = genRet(verb, test_set, [[ob, affordances]])
+            ret_objs = genRet(verb, test_set, [[ob, affordances, img]])
             sims = []
             output = model(sentence)
             for obj_name, obj in ret_objs:
@@ -128,8 +128,8 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
                 print(result)
             l = []
             for i, lt in enumerate(ret_objs):
-                obj_name, aff = lt
-                l.append([obj_name, aff, sims[i]])
+                obj_name, aff, img = lt
+                l.append([obj_name, sims[i], img])
             top1, top2 = sims.index(sort[0]), sims.index(sort[1])
             t1, t2 = ret_objs[top1][0], ret_objs[top2][0]
             if opt.DEBUG:
@@ -143,69 +143,6 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
         ret_acc2.append(correct2/len(test_set))
 
 
-def genTest(verb, test_set, objs):
-    while True:
-        sample = random.choice(test_set)
-        #only sample objects used for different task
-        if sample[0] != verb:
-            for i, obj in enumerate(objs):
-                if sample[1] is obj[0]:
-                    break
-                elif i == (len(objs) - 1):
-                    objs.append([sample[1], sample[3]])
-                    break
-            if len(objs) >= opt.ret_num:
-                return objs
-
-
-def test(model, test_set, word2id, test_acc1, test_acc2):
-    model.eval()
-    correct, correct2 = 0.0, 0.0
-    with torch.no_grad():
-        for verb, ob, sentence, affordances, val in test_set:
-            s = 'give me something to ' + verb
-            sentence = []
-            for word in s.split():
-                sentence.append(word2id[word])
-            sentence = Tensor(sentence).unsqueeze(0)
-            ret_objs = genRet(verb, test_set, [[ob, affordances]])
-            sims = []
-            output = model(sentence)
-            for obj_name, obj in ret_objs:
-                affordances = torch.from_numpy(
-                    obj).to(device).float().unsqueeze(0)
-                sim = F.cosine_similarity(output, affordances)
-                sims.append(sim.item())
-            sort = sorted(sims, reverse=True)
-            if sort[0] == sims[0]:
-                correct += 1
-                correct2 += 1
-                result = 'FIRST'
-            elif sort[1] == sims[0]:
-                correct2 += 1
-                result = 'SECOND'
-            else:
-                result = 'BOTH WRONG'
-            if opt.DEBUG:
-                print()
-                print(result)
-            l = []
-            for i, lt in enumerate(ret_objs):
-                obj_name, aff = lt
-                l.append([obj_name, aff, sims[i]])
-            top1, top2 = sims.index(sort[0]), sims.index(sort[1])
-            t1, t2 = ret_objs[top1][0], ret_objs[top2][0]
-            if opt.DEBUG:
-                print(s)
-                print(output)
-                print(l)
-                print(t1,',', t2)
-        print('TEST_ACC Top1: {} Top2: {}'.format(correct/len(test_set),
-                                                  correct2/len(test_set)))
-        test_acc1.append(correct/len(test_set))
-        test_acc2.append(correct2/len(test_set))
-
-
 def init_model(word2id):
     # initialize the model
     model = nn.Sequential(
@@ -217,13 +154,19 @@ def init_model(word2id):
 
 
 def main():
-    # read input data and split data for training and testing
-    dt, word2id, id2word = utils.read_data(opt.input)
+    # read input data
+    train_dt, test_dt, word2id, id2word = utils.read_data(opt.input_train, opt.input_test)
+    print('-------------DATA----------------', len(train_dt), len(test_dt))
     if opt.PLOT_FIG:
         plot_train, plot_eval, plot_acc, plot_ret1, plot_ret2, \
         plot_test1, plot_test2 = [], [], [], [], [], [], []
+    #different data sizes
+    split = int(len(train_dt) / 10)
+    data_size = [split, split*2, split*3, split*4, split*5, \
+                 split*6, split*7, split*8, split*9, len(train_dt)]
+    random.shuffle(train_dt)
     for dt_size in data_size:
-        data = dt[:dt_size]
+        data = train_dt[:dt_size]
         print()
         print('DATA SIZE:', dt_size)
         random.shuffle(data)
@@ -242,25 +185,22 @@ def main():
             for l in test_data:
                 train_data.append(utils.crossval_helper(l, test_data))
         else: #normal train-test split
-            split = int(len(data)*opt.train_proportion)
-            train_data = data[:split]
-            test_data = data[split:]
+            train_data = data
+            test_data = test_dt
 
         # train and evaluate model
         if opt.k_fold:
-            plt_train, plt_eval, plt_acc, plt_ret1, plt_ret2, plt_test1, \
-            plt_test2 = [], [], [], [], [], [], []
+            plt_train, plt_eval, plt_acc, plt_ret1, plt_ret2 = [], [], [], [], []
             for i in range(opt.k):
                 print("------------------------------------------------------------------------------------")
                 print("FOLD", i+1)
                 model, optimizer = init_model(word2id)
-                train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, \
-                test_acc1, test_acc2 = [], [], [], [], [], [], []
+                train_loss, eval_loss, eval_acc, \
+                ret_acc1, ret_acc2 = [], [], [], [], []
                 data = utils.gen_examples(train_data[i])
                 t_data = utils.gen_examples(test_data[i])
                 eval(model, t_data, eval_loss, eval_acc)
                 ret(model, t_data, id2word, ret_acc1, ret_acc2)
-                test(model, t_data, word2id, test_acc1, test_acc2)
                 for epoch in range(opt.num_epochs):
                     print()
                     print("EPOCH", epoch + 1)
@@ -268,7 +208,6 @@ def main():
                     train(model, data, optimizer, train_loss)
                     eval(model, t_data, eval_loss, eval_acc)
                     ret(model, t_data, id2word, ret_acc1, ret_acc2)
-                    test(model, t_data, word2id, test_acc1, test_acc2)
                     if opt.SAVE_MODEL:
                         torch.save(model.state_dict(),
                                    './models/nlmodel_datasize'+str(dt_size)+\
@@ -279,8 +218,6 @@ def main():
                     plt_acc.append((i+1, eval_acc))
                     plt_ret1.append((i+1, ret_acc1))
                     plt_ret2.append((i+1, ret_acc2))
-                    plt_test1.append((i+1, test_acc1))
-                    plt_test2.append((i+1, test_acc2))
             #plot losses & accuracies
             if opt.PLOT_FIG:
                 utils.plot(plt_train,'Train Loss', 'Fold number',
@@ -298,21 +235,14 @@ def main():
                 utils.plot(plt_ret2, 'Top2 Retrieval Accuracy', 'Fold number',
                            './images/cross_val/ret_acc2_datasize'+ \
                            str(dt_size)+'.png')
-                utils.plot(plt_test1, 'Top1 Test Accuracy', 'Fold number',
-                           './images/cross_val/test_acc1_datasize'+ \
-                           str(dt_size)+'.png')
-                utils.plot(plt_test2, 'Top2 Test Accuracy', 'Fold number',
-                           './images/cross_val/test_acc2_datasize'+ \
-                           str(dt_size)+'.png')
         else:
             model, optimizer = init_model(word2id)
-            train_loss, eval_loss, eval_acc, ret_acc1, ret_acc2, test_acc1, \
-            test_acc2 = [], [], [], [], [], [], []
+            train_loss, eval_loss, eval_acc, \
+            ret_acc1, ret_acc2 = [], [], [], [], []
             data = utils.gen_examples(train_data)
             t_data = utils.gen_examples(test_data)
             eval(model, t_data, eval_loss, eval_acc)
             ret(model, t_data, id2word, ret_acc1, ret_acc2)
-            test(model, t_data, word2id, test_acc1, test_acc2)
             for epoch in range(opt.num_epochs):
                 print()
                 print('EPOCH', epoch + 1)
@@ -320,7 +250,6 @@ def main():
                 train(model, data, optimizer, train_loss)
                 eval(model, t_data, eval_loss, eval_acc)
                 ret(model, t_data, id2word, ret_acc1, ret_acc2)
-                test(model, t_data, word2id, test_acc1, test_acc2)
                 if opt.SAVE_MODEL:
                     torch.save(model.state_dict(),
                                './models/nlmodel_datasize'+str(dt_size)+ \
@@ -331,8 +260,6 @@ def main():
                 plot_acc.append((dt_size, eval_acc))
                 plot_ret1.append((dt_size, ret_acc1))
                 plot_ret2.append((dt_size, ret_acc2))
-                plot_test1.append((dt_size, test_acc1))
-                plot_test2.append((dt_size, test_acc2))
     #plot losses & accuracies
     if not opt.k_fold and opt.PLOT_FIG:
         utils.plot(plot_train, 'Train Loss', 'Data size',
@@ -345,10 +272,6 @@ def main():
                    './images/ret_acc1.png')
         utils.plot(plot_ret2, 'Top2 Retrieval Accuracy', 'Data size',
                    './images/ret_acc2.png')
-        utils.plot(plot_test1, 'Top1 Test Accuracy', 'Data size',
-                   './images/test_acc1.png')
-        utils.plot(plot_test2, 'Top2 Test Accuracy', 'Data size',
-                   './images/test_acc2.png')
 
 if __name__ == '__main__':
     main()

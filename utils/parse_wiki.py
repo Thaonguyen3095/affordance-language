@@ -89,7 +89,7 @@ def filter_object_verbs(object_verb_file, verb_object_file):
         f.write(json.dumps(tf_idf_score))
 
     with open("../data/filtered-object-verb.tsv", "w+") as f:
-        f.write("../data/object\tverb\tfreq\ttf-idf\n")
+        f.write("object\tverb\tfreq\ttf-idf\n")
         for obj in filtered_object_verb:
             for verb in filtered_object_verb[obj]:
                 f.write(obj + '\t' + verb + '\t'

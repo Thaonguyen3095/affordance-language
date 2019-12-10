@@ -1,5 +1,5 @@
 import os
-import json
+import csv
 
 file_name = '../data/map_clsloc.txt'
 labels = '/home/thao/Downloads/ILSVRC2012_devkit_t12/data/ILSVRC2012_validation_ground_truth.txt'
