@@ -42,17 +42,17 @@ def crossval_helper(l, total_list):
     return lt
 
 
-def gen_examples(train_data):
-    train_pos = [(row[0], row[1], row[2], row[3], row[4], 1.0) for row in train_data]
-    train_neg = []
-    for row in train_pos:
+def gen_examples(data):
+    pos = [(row[0], row[1], row[2], row[3], row[4], 1.0) for row in data]
+    neg = []
+    for row in pos:
         while True:
-            neg_sample = random.choice(train_pos)
+            neg_sample = random.choice(pos)
             if (not neg_sample[0] == row[0]) and (not neg_sample[1] == row[1]):
-                train_neg += [(row[0], row[1], row[2], neg_sample[3], neg_sample[4], -1.0)]
+                neg += [(row[0], row[1], row[2], neg_sample[3], neg_sample[4], -1.0)]
                 break
-    data = train_pos + train_neg
-    return data
+    all_data = pos + neg
+    return all_data, pos
 
 
 def plot(losses, y_label, legend_label, file_name):

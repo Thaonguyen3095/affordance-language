@@ -79,36 +79,35 @@ def eval(model, test_set, plot_loss, plot_acc):
         plot_acc.append(correct/len(test_set))
 
 
-def genRet(verb, test_set, objs):
-    while True:
-        sample = random.choice(test_set)
-        #only sample objects used for different task
-        if sample[0] != verb:
-            for i, obj in enumerate(objs):
-                #ensure that the set has unique objects
-                if sample[1] is obj[0]:
-                    break
-                elif i == (len(objs) - 1):
-                    #object name, affordance vector, image file
-                    objs.append([sample[1], sample[3], sample[4]])
-                    break
-            if len(objs) >= opt.ret_num:
-                return objs
+def genRet(test_pos):
+    ret_set = []
+    for verb, obj, sentence, affordances, img, val in test_pos:
+        l = [sentence]
+        ret_objs = [[obj, affordances, img]]
+        all_o = [obj]
+        while len(ret_objs) < opt.ret_num:
+            sample = random.choice(test_pos)
+            #only sample objects used for different task, make sure set has unique objects
+            if (sample[0] != verb) and (sample[1] not in all_o):
+                ret_objs.append([sample[1], sample[3], sample[4]])
+                all_o.append(sample[1])
+        l.append(ret_objs)
+        ret_set.append(l)
+    return ret_set
 
 
-def ret(model, test_set, id2word, ret_acc1, ret_acc2):
+def ret(model, ret_set, id2word, ret_acc1, ret_acc2):
     model.eval()
     correct, correct2 = 0.0, 0.0
     with torch.no_grad():
-        for verb, ob, sentence, affordances, img, val in test_set:
+        for sentence, ret_objs in ret_set:
             s = ''
             for i in sentence:
                 s += id2word[i] + ' '
             sentence = Tensor(sentence).unsqueeze(0)
-            ret_objs = genRet(verb, test_set, [[ob, affordances, img]])
             sims = []
             output = model(sentence)
-            for obj_name, obj in ret_objs:
+            for obj_name, obj, img in ret_objs:
                 affordances = torch.from_numpy(
                     obj).to(device).float().unsqueeze(0)
                 sim = F.cosine_similarity(output, affordances)
@@ -138,9 +137,9 @@ def ret(model, test_set, id2word, ret_acc1, ret_acc2):
                 print(l)
                 print(t1,',', t2)
         print('RET_ACC Top1: {} Top2: {}'.format(
-            correct/len(test_set), correct2/len(test_set)))
-        ret_acc1.append(correct/len(test_set))
-        ret_acc2.append(correct2/len(test_set))
+            correct/len(ret_set), correct2/len(ret_set)))
+        ret_acc1.append(correct/len(ret_set))
+        ret_acc2.append(correct2/len(ret_set))
 
 
 def init_model(word2id):
@@ -165,6 +164,8 @@ def main():
     data_size = [split, split*2, split*3, split*4, split*5, \
                  split*6, split*7, split*8, split*9, len(train_dt)]
     random.shuffle(train_dt)
+    all_test_data, all_test_pos = utils.gen_examples(test_dt)
+    all_ret_data = genRet(all_test_pos)
     for dt_size in data_size:
         data = train_dt[:dt_size]
         print()
@@ -186,7 +187,6 @@ def main():
                 train_data.append(utils.crossval_helper(l, test_data))
         else: #normal train-test split
             train_data = data
-            test_data = test_dt
 
         # train and evaluate model
         if opt.k_fold:
@@ -197,17 +197,18 @@ def main():
                 model, optimizer = init_model(word2id)
                 train_loss, eval_loss, eval_acc, \
                 ret_acc1, ret_acc2 = [], [], [], [], []
-                data = utils.gen_examples(train_data[i])
-                t_data = utils.gen_examples(test_data[i])
+                data, _ = utils.gen_examples(train_data[i])
+                t_data, t_pos = utils.gen_examples(test_data[i])
+                r_data = genRet(t_pos)
                 eval(model, t_data, eval_loss, eval_acc)
-                ret(model, t_data, id2word, ret_acc1, ret_acc2)
+                ret(model, r_data, id2word, ret_acc1, ret_acc2)
                 for epoch in range(opt.num_epochs):
                     print()
                     print("EPOCH", epoch + 1)
                     random.shuffle(data)
                     train(model, data, optimizer, train_loss)
                     eval(model, t_data, eval_loss, eval_acc)
-                    ret(model, t_data, id2word, ret_acc1, ret_acc2)
+                    ret(model, r_data, id2word, ret_acc1, ret_acc2)
                     if opt.SAVE_MODEL:
                         torch.save(model.state_dict(),
                                    './models/nlmodel_datasize'+str(dt_size)+\
@@ -239,17 +240,18 @@ def main():
             model, optimizer = init_model(word2id)
             train_loss, eval_loss, eval_acc, \
             ret_acc1, ret_acc2 = [], [], [], [], []
-            data = utils.gen_examples(train_data)
-            t_data = utils.gen_examples(test_data)
+            data, _ = utils.gen_examples(train_data)
+            t_data = all_test_data
+            r_data = all_ret_data
             eval(model, t_data, eval_loss, eval_acc)
-            ret(model, t_data, id2word, ret_acc1, ret_acc2)
+            ret(model, r_data, id2word, ret_acc1, ret_acc2)
             for epoch in range(opt.num_epochs):
                 print()
                 print('EPOCH', epoch + 1)
                 random.shuffle(data)
                 train(model, data, optimizer, train_loss)
                 eval(model, t_data, eval_loss, eval_acc)
-                ret(model, t_data, id2word, ret_acc1, ret_acc2)
+                ret(model, r_data, id2word, ret_acc1, ret_acc2)
                 if opt.SAVE_MODEL:
                     torch.save(model.state_dict(),
                                './models/nlmodel_datasize'+str(dt_size)+ \
