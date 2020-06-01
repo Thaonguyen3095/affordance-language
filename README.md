@@ -1,10 +1,6 @@
-# affordance-language
-- query_wiki.py (in /utils) collects all sentences in Wikipedia containing the given objects
-- parse_wiki.py (in /utils) parses the collected sentences to obtain verb-object pairs
-- imagenet.py (in /utils) generates a dictionary mapping ImageNet images to their labels (object name)
-- resnet.py takes in ImageNet images and generate object-embedding pairs corresponding to the image
-- gen_data.py (in /utils) takes in verb-object and object-embedding pairs, and generate command-embedding pairs for training and testing
-- helpers.py (in /utils) contains helper functions for data reading, positive & negative example generation, cross validation lists generation, and data plotting
+# Robot Object Retrieval with Contextual Natural Language Queries
+- To evaluate the trained model, run eval.py with the desired mode (YCB, robot, eval).
+- The annotated dataset of 655 verb-object pairs can be found at data/annotated-vo.csv (a valid verb-object pair is annotated with label '1').
+- We also release a smaller dataset of 88 verb-object pairs over a subset of verbs from our original dataset and objects from the YCB object set, this dataset can be found at data/ycb-verb-object.csv.
 
-- To train and test the model, run run.py
-- All data should go in the /data directory
+- To train and evaluate your own model on our dataset, run run.py (you will first need to run resnet.py to generate embeddings for your objects, and gen_data.py to generate train and test data for the model).

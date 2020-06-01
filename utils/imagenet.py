@@ -1,7 +1,10 @@
 import os
 import csv
 
-file_name = '../data/map_clsloc.txt'
+# Generates a dictionary mapping ImageNet images to their labels
+
+file_name = '../data/map_clsloc.txt' #contains mapping between ImageNet classes and labels
+#subtitute with your own path to the ILSVRC2012 validation images and image labels
 labels = '/home/thao/Downloads/ILSVRC2012_devkit_t12/data/ILSVRC2012_validation_ground_truth.txt'
 folder = '/home/thao/Downloads/ILSVRC2012_img_val'
 

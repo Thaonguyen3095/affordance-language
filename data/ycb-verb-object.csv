@@ -1,0 +1,88 @@
+contain,chips can
+open,chips can
+contain,cracker box
+open,cracker box
+contain,tomato soup can
+open,tomato soup can
+contain,mustard bottle
+open,mustard bottle
+contain,tuna fish can
+open,tuna fish can
+contain,potted meat can
+open,potted meat can
+eat,banana
+grow,banana
+eat,strawberry
+grow,strawberry
+eat,apple
+grow,apple
+eat,lemon
+grow,lemon
+eat,peach
+grow,peach
+eat,pear
+grow,pear
+eat,orange
+grow,orange
+eat,plum
+grow,plum
+contain,pitcher base
+serve,pitcher base
+open,pitcher base
+contain,windex bottle
+open,windex bottle
+contain,wine glass
+serve,wine glass
+contain,bowl
+serve,bowl
+eat,bowl
+contain,mug
+serve,mug
+eat,mug
+serve,plate
+eat,plate
+cut,fork
+eat,fork
+hit,fork
+cut,spoon
+eat,spoon
+hit,spoon
+cut,knife
+eat,knife
+hit,knife
+construct,power drill
+hit,power drill
+construct,wood block
+hit,wood block
+cut,scissors
+hit,scissors
+open,padlock
+write,large marker
+construct,adjustable wrench
+rotate,adjustable wrench
+hit,adjustable wrench
+construct,phillips screwdriver
+rotate,phillips screwdriver
+hit,phillips screwdriver
+cut,flat screwdriver
+construct,flat screwdriver
+rotate,flat screwdriver
+hit,flat screwdriver
+construct,plastic bolt
+rotate,plastic bolt
+construct,plastic nut
+rotate,plastic nut
+construct,hammer
+hit,hammer
+construct,small clamp
+hit,small clamp
+play,mini soccer ball
+play,softball
+play,baseball
+play,tennis ball
+play,racquetball
+play,golf ball
+play,cups
+play,toy airplane
+deliver,toy airplane
+hit,toy airplane
