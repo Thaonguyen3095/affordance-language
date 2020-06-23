@@ -26,7 +26,7 @@ preprocess = transforms.Compose([
 with open('../data/ycb-object-embedding.csv', 'w', newline='') as out:
     csvwriter = csv.writer(out, delimiter=',')
     #subtitute with your own path to the YCB images
-    #we selected 1 front-view image to represent each object
+    #we selected 1 front-facing image to represent each object
     dir = '/home/thao/Downloads/ycb'
     for f in os.listdir(dir):
         label = f.split('_')[1:]
