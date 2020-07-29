@@ -7,10 +7,13 @@
 - To train and evaluate your own model on our dataset, run run.py (you will first need to run resnet.py to generate embeddings for your objects, and gen_data.py to generate train and test data for the model)
 - If you find the dataset or code useful, please cite:
 ```
-@article{nguyen2020robot,
-  title={Robot Object Retrieval with Contextual Natural Language Queries},
-  author={Nguyen, Thao and Gopalan, Nakul and Patel, Roma and Corsaro, Matt and Pavlick, Ellie and Tellex, Stefanie},
-  journal={arXiv preprint arXiv:2006.13253},
-  year={2020}
+@INPROCEEDINGS{Nguyen-RSS-20, 
+    AUTHOR    = {Thao Nguyen AND Nakul Gopalan AND Roma Patel AND Matthew Corsaro AND Ellie Pavlick AND Stefanie Tellex}, 
+    TITLE     = {{Robot Object Retrieval with Contextual Natural Language Queries}}, 
+    BOOKTITLE = {Proceedings of Robotics: Science and Systems}, 
+    YEAR      = {2020}, 
+    ADDRESS   = {Corvalis, Oregon, USA}, 
+    MONTH     = {July}, 
+    DOI       = {10.15607/RSS.2020.XVI.080} 
 }
 ```
