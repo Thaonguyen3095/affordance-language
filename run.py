@@ -178,8 +178,8 @@ def main():
             vo_dict = json.loads(line)
     #read input data
     train_dt, test_dt, word2id, id2word = utils.read_data(opt.input_train, opt.input_test)
-    #save the generated word vocab (will change with every run of run.py)
-    with open('data/word2id.json', 'w+') as f:
+    #save the generated word vocab
+    with open('dict/word2id.json', 'w+') as f:
         f.write(json.dumps(word2id))
     with open('dict/id2word.json', 'w+') as f:
         f.write(json.dumps(id2word))
